@@ -1,4 +1,4 @@
-package ghostadmin
+package ghost
 
 import (
 	"bytes"
@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-// A Client manages communication with the Ghost Admin API
-type Client struct {
+// An AdminClient manages communication with the Ghost Admin API
+type AdminClient struct {
 	client    *http.Client
 	BaseURL   *url.URL
 	UserAgent string
@@ -23,7 +23,7 @@ type Client struct {
 }
 
 type service struct {
-	client *Client
+	client *AdminClient
 }
 
 // NewClient returns a new client for interacting with Ghost Admin endpoints.
@@ -31,13 +31,13 @@ type service struct {
 // of e.g., https://blah.pubbit.io with no trailing slash. It may additionally
 // contain the subpath, but that too must omit the trailing slash.
 // httpClient should handle authentication itself
-func NewClient(baseURL string, httpClient *http.Client) (*Client, error) {
+func NewClient(baseURL string, httpClient *http.Client) (*AdminClient, error) {
 	burl, err := parseBaseURL(baseURL)
 	if err != nil {
 		return nil, err
 	}
 
-	c := &Client{client: httpClient, BaseURL: burl, UserAgent: "go-ghost"}
+	c := &AdminClient{client: httpClient, BaseURL: burl, UserAgent: "go-ghost"}
 	c.common.client = c
 	return c, nil
 }
@@ -64,7 +64,7 @@ func parseBaseURL(baseURL string) (*url.URL, error) {
 // Relative URLs should always be specified without a preceding slash. If
 // specified, the value pointed to by body is JSON encoded and included as the
 // request body.
-func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+func (c *AdminClient) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
 		return nil, fmt.Errorf("BaseURL must have a trailing slash, but %q does not", c.BaseURL)
 	}
@@ -106,7 +106,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 //
 // The provided ctx must be non-nil, if it is nil an error is returned. If it is canceled or times out,
 // ctx.Err() will be returned.
-func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
+func (c *AdminClient) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
 	if ctx == nil {
 		return nil, errors.New("context must be non-nil")
 	}

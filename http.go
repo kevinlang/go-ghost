@@ -1,4 +1,4 @@
-package ghostadmin
+package ghost
 
 import (
 	"context"
@@ -38,8 +38,8 @@ func (ats *adminTokenSource) Token() (*oauth2.Token, error) {
 	}, nil
 }
 
-// NewHTTPClient creates an admin http client that handles JWT auth with the server
-func NewHTTPClient(key string) (*http.Client, error) {
+// NewTokenHTTPClient creates an admin http client that handles JWT auth with the server
+func NewTokenHTTPClient(key string) (*http.Client, error) {
 	matched, _ := regexp.MatchString("[0-9a-f]{26}", key)
 	if !matched {
 		return nil, fmt.Errorf("key must contain 26 hexadecimal characters")
