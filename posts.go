@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// PostsService provides access to Post related functions in the Ghost Admin API.
-type PostsService service
+// AdminPostsService provides access to Post related functions in the Ghost Admin API.
+type AdminPostsService adminService
 
 // Role represents the role a user may have.
 type Role struct {
@@ -97,7 +97,7 @@ type Post struct {
 }
 
 // Get fetches a post by id.
-func (s *PostsService) Get(ctx context.Context, id string) (*Post, error) {
+func (s *AdminPostsService) Get(ctx context.Context, id string) (*Post, error) {
 	u := fmt.Sprintf("posts/%v", id)
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {

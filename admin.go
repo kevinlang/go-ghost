@@ -10,7 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
+)
+
+const (
+	BaseAdminPath = "/ghost/api/v3/admin/"
 )
 
 // An AdminClient manages communication with the Ghost Admin API
@@ -19,11 +22,13 @@ type AdminClient struct {
 	BaseURL   *url.URL
 	UserAgent string
 
+	Posts *AdminPostsService
+
 	// Reuse a single struct instead of allocating one for each service on the heap.
-	common service
+	common adminService
 }
 
-type service struct {
+type adminService struct {
 	client *AdminClient
 }
 
@@ -38,8 +43,12 @@ func NewAdminClient(baseURL string, httpClient *http.Client) (*AdminClient, erro
 		return nil, err
 	}
 
+	// we do not currently allow specifying the version
+	burl.Path += BaseAdminPath
+
 	c := &AdminClient{client: httpClient, BaseURL: burl, UserAgent: "go-ghost"}
 	c.common.client = c
+	c.Posts = (*AdminPostsService)(&c.common)
 	return c, nil
 }
 
@@ -47,10 +56,6 @@ func parseBaseURL(baseURL string) (*url.URL, error) {
 	burl, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse %s as a url", baseURL)
-	}
-
-	if burl.Scheme != "https" {
-		return nil, fmt.Errorf("base url must have https schema specified")
 	}
 
 	if burl.Path != "" {
@@ -73,6 +78,8 @@ func (c *AdminClient) NewRequest(method, urlStr string, body interface{}) (*http
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Print(u)
 
 	var buf io.ReadWriter
 	if body != nil {
@@ -128,7 +135,7 @@ func (c *AdminClient) Do(ctx context.Context, req *http.Request, v interface{}) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("received non-200 status from API")
+		return nil, fmt.Errorf("received %v status from API", resp.StatusCode)
 	}
 
 	if v != nil {
@@ -146,26 +153,4 @@ func (c *AdminClient) Do(ctx context.Context, req *http.Request, v interface{}) 
 	}
 
 	return resp, err
-}
-
-// String returns a pointer to the string.
-func String(s string) *string {
-	return &s
-}
-
-// Bool returns a pointer to the bool.
-func Bool(b bool) *bool {
-	return &b
-}
-
-// Int returns a pointer to the int.
-func Int(i int) *int {
-	return &i
-}
-
-// Time creates a timestamp from the RFC3339 string and returns a pointer,
-// ignoring any errors that occur during construction.
-func Time(s string) *time.Time {
-	t, _ := time.Parse(time.RFC3339, s)
-	return &t
 }

@@ -1,6 +1,12 @@
 package ghost
 
-import "testing"
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"reflect"
+	"testing"
+)
 
 func TestPost_marshall(t *testing.T) {
 
@@ -211,4 +217,31 @@ func TestPost_marshall(t *testing.T) {
 	}`
 
 	testJSONMarshal(t, u, want)
+}
+
+func TestPostsService_Get(t *testing.T) {
+	client, mux, _, teardown := setup()
+	defer teardown()
+
+	mux.HandleFunc(BaseAdminPath+"posts/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, `{"id": "1"}`)
+	})
+
+	if client == nil {
+		fmt.Println("client nil")
+		if client.Posts == nil {
+			fmt.Println("posts nil")
+		}
+	}
+
+	post, err := client.Posts.Get(context.Background(), "1")
+	if err != nil {
+		t.Errorf("Posts.Get returned error: %v", err)
+	}
+
+	want := &Post{ID: String("1")}
+	if !reflect.DeepEqual(post, want) {
+		t.Errorf("Posts.Get returned %+v, want %+v", post, want)
+	}
 }
