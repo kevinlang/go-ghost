@@ -77,8 +77,6 @@ func (c *AdminClient) NewRequest(method, urlStr string, body interface{}) (*http
 		return nil, err
 	}
 
-	fmt.Print(u)
-
 	var buf io.ReadWriter
 	if body != nil {
 		buf = &bytes.Buffer{}
