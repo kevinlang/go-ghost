@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // An AdminClient manages communication with the Ghost Admin API
@@ -26,12 +27,12 @@ type service struct {
 	client *AdminClient
 }
 
-// NewClient returns a new client for interacting with Ghost Admin endpoints.
+// NewAdminClient returns a new client for interacting with Ghost Admin endpoints.
 // baseURL should be the base admin url of the intance, in most cases taking the form
 // of e.g., https://blah.pubbit.io with no trailing slash. It may additionally
 // contain the subpath, but that too must omit the trailing slash.
 // httpClient should handle authentication itself
-func NewClient(baseURL string, httpClient *http.Client) (*AdminClient, error) {
+func NewAdminClient(baseURL string, httpClient *http.Client) (*AdminClient, error) {
 	burl, err := parseBaseURL(baseURL)
 	if err != nil {
 		return nil, err
@@ -145,4 +146,26 @@ func (c *AdminClient) Do(ctx context.Context, req *http.Request, v interface{}) 
 	}
 
 	return resp, err
+}
+
+// String returns a pointer to the string.
+func String(s string) *string {
+	return &s
+}
+
+// Bool returns a pointer to the bool.
+func Bool(b bool) *bool {
+	return &b
+}
+
+// Int returns a pointer to the int.
+func Int(i int) *int {
+	return &i
+}
+
+// Time creates a timestamp from the RFC3339 string and returns a pointer,
+// ignoring any errors that occur during construction.
+func Time(s string) *time.Time {
+	t, _ := time.Parse(time.RFC3339, s)
+	return &t
 }
