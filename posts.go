@@ -42,21 +42,6 @@ type Author struct {
 	URL             *string    `json:"url"`
 }
 
-// Tag represents a Post tag.
-type Tag struct {
-	ID              *string    `json:"id"`
-	Name            *string    `json:"name"`
-	Slug            *string    `json:"slug"`
-	Description     *string    `json:"description"`
-	FeatureImage    *string    `json:"feature_image"`
-	Visibility      *string    `json:"visibility"`
-	MetaTitle       *string    `json:"meta_title"`
-	MetaDescription *string    `json:"meta_description"`
-	CreatedAt       *time.Time `json:"created_at"`
-	UpdatedAt       *time.Time `json:"updated_at"`
-	URL             *string    `json:"url"`
-}
-
 // Post represents a Ghost post.
 type Post struct {
 	Slug               *string    `json:"slug"`
@@ -95,6 +80,20 @@ type Post struct {
 	MetaDescription    *string    `json:"meta_description"`
 }
 
+func (p Post) String() string {
+	return Stringify(p)
+}
+
+// PostsResponse is the structure of the Post response.
+type PostsResponse struct {
+	Response
+	Posts []*Post
+}
+
+func (pr PostsResponse) String() string {
+	return Stringify(pr)
+}
+
 // Get fetches a post by id.
 func (s *AdminPostsService) Get(id string) (*Post, error) {
 	u := fmt.Sprintf("posts/%v", id)
@@ -103,15 +102,32 @@ func (s *AdminPostsService) Get(id string) (*Post, error) {
 		return nil, err
 	}
 
-	post := new(Post)
-	_, err = s.client.Do(req, post)
+	postsResponse := new(PostsResponse)
+	_, err = s.client.Do(req, postsResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return post, nil
+	return postsResponse.Posts[0], nil
 }
 
-func (s *AdminPostsService) List() ([]*Post, error) {
-	return nil, nil
+// List fetches all posts via the ListParams.
+func (s *AdminPostsService) List(listParams *ListParams) (*PostsResponse, error) {
+	u, err := addOptions("posts/", listParams)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	postsResponse := new(PostsResponse)
+	_, err = s.client.Do(req, postsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return postsResponse, nil
 }

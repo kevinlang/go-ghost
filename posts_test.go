@@ -224,7 +224,7 @@ func TestPostsService_Get(t *testing.T) {
 
 	mux.HandleFunc(BaseAdminPath+"posts/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, `{"id": "1"}`)
+		fmt.Fprint(w, `{ "posts": [{"id": "1"}] }`)
 	})
 
 	post, err := client.Posts.Get("1")
