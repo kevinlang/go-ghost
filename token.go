@@ -1,10 +1,8 @@
 package ghost
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -16,13 +14,17 @@ import (
 const (
 	tokenAudience = "/v3/admin/"
 	tokenType     = "Ghost"
+	timeout       = time.Second * 10
 )
 
-type adminTokenSource struct {
+// AdminTokenSource is a token source for token-based authentication with
+// the Ghost Admin API.
+type AdminTokenSource struct {
 	Key string
 }
 
-func (ats *adminTokenSource) Token() (*oauth2.Token, error) {
+// Token returns the Ghost jwt token needed for token based authenication.
+func (ats *AdminTokenSource) Token() (*oauth2.Token, error) {
 	split := strings.Split(ats.Key, ":")
 	if len(split) != 2 {
 		return nil, fmt.Errorf("incorrect key format")
@@ -53,20 +55,18 @@ func (ats *adminTokenSource) Token() (*oauth2.Token, error) {
 	}, nil
 }
 
-// NewTokenAuthClient creates a http.Client that handles JWT auth with the server.
-// This creates the http client you will want for the NewAdminClient constructor.
-func NewTokenAuthClient(key string) (*http.Client, error) {
+// NewAdminTokenSource returns a reusable oauth2.TokenSource that is backed by
+// the AdminTokenSource implementation. It handles properly creating and renewing
+// the JWT needed for communication with Ghost for token-based auth.
+func NewAdminTokenSource(key string) (oauth2.TokenSource, error) {
 	matched, _ := regexp.MatchString("[0-9a-f]{26}", key)
 	if !matched {
 		return nil, fmt.Errorf("key must contain 26 hexadecimal characters")
 	}
-
 	if strings.Count(key, ":") != 1 {
-		return nil, fmt.Errorf("key must be split between id and key, seperated by ':'")
+		return nil, fmt.Errorf("key must be split between id and secret, seperated by ':'")
 	}
 
-	ts := oauth2.ReuseTokenSource(nil, &adminTokenSource{Key: key})
-	httpClient := oauth2.NewClient(context.Background(), ts)
-	httpClient.Timeout = time.Second * 10
-	return httpClient, nil
+	ts := oauth2.ReuseTokenSource(nil, &AdminTokenSource{Key: key})
+	return ts, nil
 }

@@ -113,7 +113,7 @@ func (s *AdminPostsService) Get(id string) (*Post, error) {
 
 // List fetches all posts via the ListParams.
 func (s *AdminPostsService) List(listParams *ListParams) (*PostsResponse, error) {
-	u, err := addOptions("posts/", listParams)
+	u, err := addOptions("posts", listParams)
 	if err != nil {
 		return nil, err
 	}
