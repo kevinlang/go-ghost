@@ -1,7 +1,6 @@
 package ghost
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -228,14 +227,7 @@ func TestPostsService_Get(t *testing.T) {
 		fmt.Fprint(w, `{"id": "1"}`)
 	})
 
-	if client == nil {
-		fmt.Println("client nil")
-		if client.Posts == nil {
-			fmt.Println("posts nil")
-		}
-	}
-
-	post, err := client.Posts.Get(context.Background(), "1")
+	post, err := client.Posts.Get("1")
 	if err != nil {
 		t.Errorf("Posts.Get returned error: %v", err)
 	}

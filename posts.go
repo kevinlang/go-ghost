@@ -1,7 +1,6 @@
 package ghost
 
 import (
-	"context"
 	"fmt"
 	"time"
 )
@@ -97,7 +96,7 @@ type Post struct {
 }
 
 // Get fetches a post by id.
-func (s *AdminPostsService) Get(ctx context.Context, id string) (*Post, error) {
+func (s *AdminPostsService) Get(id string) (*Post, error) {
 	u := fmt.Sprintf("posts/%v", id)
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
@@ -105,10 +104,14 @@ func (s *AdminPostsService) Get(ctx context.Context, id string) (*Post, error) {
 	}
 
 	post := new(Post)
-	_, err = s.client.Do(ctx, req, post)
+	_, err = s.client.Do(req, post)
 	if err != nil {
 		return nil, err
 	}
 
 	return post, nil
+}
+
+func (s *AdminPostsService) List() ([]*Post, error) {
+	return nil, nil
 }

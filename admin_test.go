@@ -29,7 +29,6 @@ func setup() (client *AdminClient, mux *http.ServeMux, serverURL string, teardow
 	// configured to use test server.
 	client, err := NewAdminClient(server.URL, &http.Client{})
 	if err != nil {
-		log.Print(server.URL)
 		log.Fatal(err)
 	}
 

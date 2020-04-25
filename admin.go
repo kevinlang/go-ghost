@@ -2,9 +2,7 @@ package ghost
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -111,25 +109,9 @@ func (c *AdminClient) NewRequest(method, urlStr string, body interface{}) (*http
 // error if an API error has occurred. If v implements the io.Writer
 // interface, the raw response body will be written to v, without attempting to
 // first decode it.
-//
-// The provided ctx must be non-nil, if it is nil an error is returned. If it is canceled or times out,
-// ctx.Err() will be returned.
-func (c *AdminClient) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
-	if ctx == nil {
-		return nil, errors.New("context must be non-nil")
-	}
-
-	req = req.WithContext(ctx)
+func (c *AdminClient) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	resp, err := c.client.Do(req)
 	if err != nil {
-		// If we got an error, and the context has been canceled,
-		// the context's error is probably more useful.
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
 		return nil, err
 	}
 	defer resp.Body.Close()
