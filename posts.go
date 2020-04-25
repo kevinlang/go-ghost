@@ -86,8 +86,8 @@ func (p Post) String() string {
 
 // PostsResponse is the structure of the Post response.
 type PostsResponse struct {
-	Response
 	Posts []*Post
+	Meta  *Meta
 }
 
 func (pr PostsResponse) String() string {

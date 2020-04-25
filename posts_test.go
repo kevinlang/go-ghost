@@ -224,6 +224,7 @@ func TestPostsService_Get(t *testing.T) {
 
 	mux.HandleFunc(BaseAdminPath+"posts/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testFormValues(t, r, nil)
 		fmt.Fprint(w, `{ "posts": [{"id": "1"}] }`)
 	})
 
@@ -235,5 +236,46 @@ func TestPostsService_Get(t *testing.T) {
 	want := &Post{ID: String("1")}
 	if !reflect.DeepEqual(post, want) {
 		t.Errorf("Posts.Get returned %+v, want %+v", post, want)
+	}
+}
+
+func TestPostsService_List(t *testing.T) {
+	client, mux, _, teardown := setup()
+	defer teardown()
+
+	mux.HandleFunc(BaseAdminPath+"posts/", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testFormValues(t, r, map[string]string{
+			"page": "2",
+		})
+		fmt.Fprint(w, `{ 
+			"posts": [
+				{"id": "1"}
+			], 
+			"meta": {
+				"pagination": {
+					"pages": 2
+				}
+			}}`)
+	})
+
+	post, err := client.Posts.List(&ListParams{Page: 2})
+	if err != nil {
+		t.Errorf("Posts.List returned error: %v", err)
+	}
+
+	want := &PostsResponse{
+		Posts: []*Post{
+			&Post{ID: String("1")},
+		},
+		Meta: &Meta{
+			&Pagination{
+				Pages: Int(2),
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(post, want) {
+		t.Errorf("Posts.List returned %+v, want %+v", post, want)
 	}
 }

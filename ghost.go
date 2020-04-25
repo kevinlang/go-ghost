@@ -27,15 +27,6 @@ func (m Meta) String() string {
 	return Stringify(m)
 }
 
-// Response is the usual response format we get from most endpoints.
-type Response struct {
-	Meta *Meta
-}
-
-func (r Response) String() string {
-	return Stringify(r)
-}
-
 // QueryParams are query params that can be used for get and list requests.
 type QueryParams struct {
 	// TODO
@@ -44,10 +35,10 @@ type QueryParams struct {
 // ListParams are params that can be used for list requests.
 type ListParams struct {
 	QueryParams
-	Filter *string
-	Limit  *int
-	Page   *int
-	Order  *string
+	Filter string `url:"filter,omitempty"`
+	Limit  int    `url:"limit,omitempty"`
+	Page   int    `url:"page,omitempty"`
+	Order  string `url:"order,omitempty"`
 }
 
 func (lp ListParams) String() string {

@@ -3,6 +3,7 @@ package ghost
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -37,5 +38,18 @@ func testMethod(t *testing.T, r *http.Request, want string) {
 	t.Helper()
 	if got := r.Method; got != want {
 		t.Errorf("Request method: %v, want %v", got, want)
+	}
+}
+
+func testFormValues(t *testing.T, r *http.Request, values map[string]string) {
+	t.Helper()
+	want := url.Values{}
+	for k, v := range values {
+		want.Set(k, v)
+	}
+
+	r.ParseForm()
+	if got := r.Form; !reflect.DeepEqual(got, want) {
+		t.Errorf("Request parameters: %v, want %v", got, want)
 	}
 }
