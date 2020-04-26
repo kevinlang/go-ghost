@@ -26,7 +26,12 @@ func (s *AdminSessionService) Create(username, password string) error {
 		return err
 	}
 
-	response, err := s.client.Do(req, nil)
+	// we want to read the entire response stream or we may run into a
+	// race condition and have our next call hit 403 because the session token
+	// has not yet been persisted due to quirks of express-router.
+	// same underlying cause as https://github.com/expressjs/session/issues/360
+	var body interface{}
+	response, err := s.client.Do(req, body)
 	if err != nil {
 		return err
 	}
