@@ -25,9 +25,10 @@ type AdminClient struct {
 	BaseURL   *url.URL
 	UserAgent string
 
-	Database *AdminDatabaseService
-	Posts    *AdminPostsService
-	Session  *AdminSessionService
+	Database  *AdminDatabaseService
+	Posts     *AdminPostsService
+	Redirects *AdminRedirectsService
+	Session   *AdminSessionService
 
 	// Reuse a single struct instead of allocating one for each service on the heap.
 	common adminService
@@ -55,6 +56,7 @@ func NewAdminClient(baseURL string, httpClient *http.Client) (*AdminClient, erro
 	c.common.client = c
 	c.Database = (*AdminDatabaseService)(&c.common)
 	c.Posts = (*AdminPostsService)(&c.common)
+	c.Redirects = (*AdminRedirectsService)(&c.common)
 	c.Session = (*AdminSessionService)(&c.common)
 	return c, nil
 }
