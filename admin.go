@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"reflect"
 	"strings"
@@ -106,6 +108,59 @@ func (c *AdminClient) NewRequest(method, urlStr string, body interface{}) (*http
 	if c.UserAgent != "" {
 		req.Header.Set("User-Agent", c.UserAgent)
 	}
+	return req, nil
+}
+
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
+}
+
+func createFormFile(w *multipart.Writer, fieldname, filename, contenttype string) (io.Writer, error) {
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition",
+		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+			escapeQuotes(fieldname), escapeQuotes(filename)))
+	h.Set("Content-Type", contenttype)
+	return w.CreatePart(h)
+}
+
+// WriteFilePart is the "callback" responsible for writing out the file of the multipart request.
+type WriteFilePart func(mpw *multipart.Writer) error
+
+// NewUploadRequest does an upload request by doing a POST against the provided path.
+// It calls out to writePart to write out the principal file part of the payload,
+// then populates additional multipart params provided in params.
+func (c *AdminClient) NewUploadRequest(urlStr string, writePart WriteFilePart, params map[string]string) (*http.Request, error) {
+	if !strings.HasSuffix(c.BaseURL.Path, "/") {
+		return nil, fmt.Errorf("BaseURL must have a trailing slash, but %q does not", c.BaseURL)
+	}
+	u, err := c.BaseURL.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	mp := multipart.NewWriter(buf)
+	err = writePart(mp)
+	if err != nil {
+		return nil, err
+	}
+	for name, value := range params {
+		mp.WriteField(name, value)
+	}
+	mp.Close()
+
+	req, err := http.NewRequest("POST", u.String(), buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.UserAgent != "" {
+		req.Header.Set("User-Agent", c.UserAgent)
+	}
+	req.Header.Set("Content-Type", mp.FormDataContentType())
 	return req, nil
 }
 
