@@ -3,6 +3,7 @@ package ghost
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // AdminSessionService handles establishing a cookie-based session with Ghost.
@@ -38,6 +39,10 @@ func (s *AdminSessionService) Create(username, password string) error {
 	if response.StatusCode != http.StatusCreated {
 		return fmt.Errorf("failed to establish session")
 	}
+
+	// in fact, even reading the entire result stream is sometimes insufficient
+	// so we will wait a couple milliseconds here as well. TOOD: fix upstream
+	time.Sleep(time.Millisecond * 10)
 
 	return nil
 }
